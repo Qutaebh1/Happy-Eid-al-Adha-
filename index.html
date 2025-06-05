@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>ألعاب نارية + تهنئة</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+      font-family: 'Arial', sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #message {
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      text-align: center;
+      font-size: 48px;
+      color: white;
+      display: none;
+      text-shadow: 2px 2px 8px #ff0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="message">المهندس قتيبة القضاه يهنئكم بحلول عيد الاضحى المبارك<br>كل عام وانتم بخير </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const message = document.getElementById('message');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let fireworks = [];
+    let particles = [];
+
+    class Firework {
+      constructor(x, targetY) {
+        this.x = x;
+        this.y = canvas.height;
+        this.targetY = targetY;
+        this.speedY = -7;
+        this.exploded = false;
+      }
+
+      update() {
+        this.y += this.speedY;
+        if (this.y <= this.targetY && !this.exploded) {
+          this.exploded = true;
+          this.explode();
+        }
+      }
+
+      draw() {
+        if (!this.exploded) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI);
+          ctx.fillStyle = 'white';
+          ctx.fill();
+        }
+      }
+
+      explode() {
+        for (let i = 0; i < 100; i++) {
+          particles.push(new Particle(this.x, this.y));
+        }
+      }
+    }
+
+    class Particle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.speed = Math.random() * 5 + 1;
+        this.angle = Math.random() * 2 * Math.PI;
+        this.radius = Math.random() * 2 + 1;
+        this.alpha = 1;
+        this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        this.gravity = 0.05;
+        this.fade = Math.random() * 0.02 + 0.01;
+      }
+
+      update() {
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed + this.gravity;
+        this.alpha -= this.fade;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (Math.random() < 0.05) {
+        const x = Math.random() * canvas.width;
+        const targetY = Math.random() * canvas.height / 2;
+        fireworks.push(new Firework(x, targetY));
+      }
+
+      fireworks.forEach((fw, i) => {
+        fw.update();
+        fw.draw();
+        if (fw.exploded) fireworks.splice(i, 1);
+      });
+
+      particles.forEach((p, i) => {
+        p.update();
+        p.draw();
+        if (p.alpha <= 0) particles.splice(i, 1);
+      });
+    }
+
+    animate();
+
+    // بعد 10 ثوانٍ تظهر الرسالة
+    setTimeout(() => {
+      message.style.display = 'block';
+    }, 10000);
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
